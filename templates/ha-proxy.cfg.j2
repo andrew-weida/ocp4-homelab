@@ -1,0 +1,46 @@
+global
+    log         127.0.0.1 local2
+    maxconn     4000
+    daemon
+
+defaults
+    mode                    tcp
+    log                     global
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+listen stats-50000
+    bind :50000
+    mode            http
+    log             global
+    maxconn 10
+    timeout client  100s
+    timeout server  100s
+    timeout connect 100s
+    stats enable
+    stats hide-version
+    stats refresh 30s
+    stats show-node
+    stats auth admin:password
+    stats uri  /haproxy?stats
+
+frontend routers-https-443
+    bind :443
+    mode tcp
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req_ssl_hello_type 1 }
+    acl ACL_management req_ssl_sni -m reg -i ^[^\.]+\.apps\.ocp-lab\.home\.arpa
+    use_backend ingress_443 if ACL_management
+
+backend ingress_443
+    mode tcp
+    balance source
+    option ssl-hello-chk
+    server ingress {{ vip.apps }}:443 check inter 1s

@@ -1,0 +1,11 @@
+master_nodes:
+  - name: master-0
+    baremetal_mac: 'aa:aa:aa:aa:01:02'
+    baremetal_ip: 192.168.125.10
+  - name: master-1
+    baremetal_mac: 'aa:aa:aa:aa:01:03'
+    baremetal_ip: 192.168.125.11
+  - name: master-2
+    baremetal_mac: 'aa:aa:aa:aa:01:04'
+    baremetal_ip: 192.168.125.12
+worker_nodes: []

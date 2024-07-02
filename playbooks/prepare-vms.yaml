@@ -1,0 +1,55 @@
+- name: Create VMs and Network
+  hosts: localhost
+  vars_files:
+    - ../vars/variables.yaml
+    - ../vars/vm-nodes.yaml
+    - ../vars/vault-variables.yaml
+  tasks:
+
+    - name: Create plans directory
+      ansible.builtin.file:
+        path: "{{ root_dir }}/plans"
+        state: directory
+        mode: '0755'
+
+    - name: Create kcli networks plan file
+      ansible.builtin.template:
+        ssrc: "{{ root_dir }}/templates/kcli/kcli-networks.yaml.j2"
+        dest: "{{ root_dir }}/plans/kcli-networks.yaml"
+        mode: '0644'
+
+    - name: Create kcli vm plan file
+      ansible.builtin.template:
+        src: "{{ root_dir }}/templates/kcli/kcli-vms.yaml.j2"
+        dest: "{{ root_dir }}/plans/kcli-vms.yaml"
+        mode: '0644'
+
+    - name: Create VM Baremetal Network
+      ansible.builtin.shell: |
+        kcli create plan -f {{ root_dir }}/plans/kcli-networks.yaml
+      changed_when: false
+
+    - name: Create Virtual Machines
+      ansible.builtin.shell: |
+        kcli create plan -f {{ root_dir }}/plans/kcli-vms.yaml ocp-vms
+      changed_when: false
+
+    - name: Create api/apps DNS records
+      ansible.builtin.shell: |
+        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.api }} -d {{ domain }} api
+        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.api_int }} -d {{ domain }} api-int
+        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.apps }} -d {{ domain }} *.apps
+      changed_when: false
+
+    - name: Generate Lines for etc hosts
+      ansible.builtin.set_fact:
+        api_etc_hosts: "{{ vip.api }} api.{{ domain }}"
+        apps_etc_hosts: "{{ vip.apps }} console-openshift-console.apps.{{ domain }} oauth-openshift.apps.{{ domain }}"
+
+    - name: Add mappings to /etc/hosts
+      ansible.builtin.blockinfile:
+        path: /etc/hosts
+        block: |
+          {{ api_etc_hosts }}
+          {{ apps_etc_hosts }}
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"

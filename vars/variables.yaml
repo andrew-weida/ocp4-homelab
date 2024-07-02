@@ -1,0 +1,41 @@
+bridge_prov: ocp4-net
+redfish:
+  redfish_ip: 192.168.125.1
+  listen_port: 8000
+  enable: true
+baremetal_net:
+  name: ocp4-net
+  net: 192.168.125.0
+  netmask: 255.255.255.0
+  prefix: 24
+  gateway: 192.168.125.1
+vip:
+  api: 192.168.125.80
+  api_int: 192.168.125.80
+  apps: 192.168.125.81
+master:
+  cpu: 8
+  memory: 20408
+  disks: 
+    - 150
+    - 100
+worker:
+  cpu: 8
+  memory: 32768
+  disks: 
+    - 150
+    - 100
+kvm_host:
+  enable_selinux: true
+  reboot_timeout: 1200
+cluster_name: ocp-lab
+base_domain: home.arpa
+domain: "{{ cluster_name }}.{{ base_domain }}"
+pull_secret_file: pull-secret.txt
+ocp_version: stable-4.15
+# choose install method: ipi, ai, agent
+# ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
+install_method: agent
+image_dir: /var/lib/libvirt/images
+# If the root filesystem is not large enough for VM images, create a new filesystem from all free devices using LVM
+create_lv_from_unused_devices: false

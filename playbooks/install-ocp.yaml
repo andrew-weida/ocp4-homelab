@@ -1,0 +1,266 @@
+- name: Prepare for agent based install
+  hosts: localhost
+  vars_files:
+    - ../vars/variables.yaml
+    - ../vars/vault-variables.yaml
+    - ../vars/vm-nodes.yaml
+  tasks:
+    - name: Remove existing cluster install directory
+      ansible.builtin.file:
+        path: "{{ root_dir }}/install"
+        state: absent
+
+    - name: Create install/install_iso directory
+      ansible.builtin.file:
+        path: "{{ root_dir }}/install/install_iso"
+        state: directory
+        mode: '0755'
+
+    - name: Create install/openshift directory
+      ansible.builtin.file:
+        path: "{{ root_dir }}/install/openshift"
+        state: directory
+        mode: '0755'
+
+    - name: Execute Pre-Reqs for Agent Based install
+      when: install_method == 'agent'
+      block:
+        - name: Copy pull-secret.txt
+          ansible.builtin.copy:
+            content: "{{ pull_secret }}"
+            dest: "{{ root_dir }}/pull-secret.txt"
+            mode: '0600'
+
+        - name: Copy install-config.yaml
+          ansible.builtin.template:
+            src: "{{ root_dir }}/templates/ocp-install/install-config-agent.yaml.j2"
+            dest: "{{ root_dir }}/install-config.yaml"
+            backup: true
+            mode: '0600'
+
+        - name: Insert pullSecret in install-config.yaml
+          ansible.builtin.shell: |
+            echo -n "pullSecret: '" >> {{ root_dir }}/install-config.yaml
+            cat {{ root_dir }}/pull-secret.txt >> {{ root_dir }}/install-config.yaml
+            sed -E -i "s@^(pullSecret: .*)@\1'@g" {{ root_dir }}/install-config.yaml
+            echo "" >> {{ root_dir }}/install-config.yaml
+          changed_when: false
+
+        - name: Insert sshKey in install-config.yaml
+          ansible.builtin.shell: |
+            echo -n "sshKey: '" >> {{ root_dir }}/install-config.yaml
+            cat $HOME/.ssh/id_rsa.pub >> {{ root_dir }}/install-config.yaml
+            sed -E -i "s@^(sshKey: .*)@\1'@g" {{ root_dir }}/install-config.yaml
+          changed_when: false
+
+        - name: Copy install-config.yaml to clusterconfigs directory
+          ansible.builtin.shell: |
+            cp -f {{ root_dir }}/install-config.yaml {{ root_dir }}/install
+          changed_when: false
+
+        - name: Copy install-config.yaml
+          ansible.builtin.template:
+            src: "{{ root_dir }}/templates/ocp-install/agent-config.yaml.j2"
+            dest: "{{ root_dir }}/agent-config.yaml"
+            backup: true
+            mode: '0600'
+
+        - name: Copy agent-config.yaml to clusterconfigs directory
+          ansible.builtin.shell: |
+            cp -f {{ root_dir }}/agent-config.yaml {{ root_dir }}/install
+          changed_when: false
+
+        - name: Generate Agent ISO Image
+          ansible.builtin.command:
+            cmd: openshift-install --dir {{ root_dir }}/install agent create image
+          changed_when: false
+
+        - name: Move OCP Install ISO Image to install_iso directoy
+          ansible.builtin.command:
+            cmd: mv {{ root_dir }}/install/agent.x86_64.iso {{ root_dir }}/install/install_iso/ocp_install.iso
+          changed_when: false
+
+    - name: Execute Pre-Reqs for Assisted Installer
+      when: install_method == 'ai'
+      block:
+        - name: Make sure pip is available
+          ansible.builtin.dnf:
+            name:
+              - python3-pip
+            state: present
+
+        - name: Install aicli python package
+          ansible.builtin.pip:
+            name:
+              - aicli
+            state: present
+
+        - name: Download Assisted Installer Discovery ISO
+          ansible.builtin.get_url:
+            url: "{{ ai_discovery_iso_url }}"
+            dest: "{{ root_dir }}/install/ocp_ai_discovery.iso"
+            mode: '0664'
+
+        - name: Move OCP AI Discovery ISO Image to install_iso directoy
+          ansible.builtin.command:
+            cmd: mv {{ root_dir }}/install/ocp_ai_discovery.iso {{ root_dir }}/install/install_iso/ocp_install.iso
+          changed_when: false
+
+    - name: Set selinux context for install_iso directory
+      ansible.builtin.shell: |
+        sudo semanage fcontext -a -t httpd_sys_content_t "{{ root_dir }}/install/install_iso(/.*)?"
+        sudo restorecon -Rv {{ root_dir }}/install/install_iso
+      changed_when: false
+
+    - name: Get info about the ocp_install_iso container
+      containers.podman.podman_container_info:
+        name: ocp_install_iso
+      register: ocp_install_iso_info
+      failed_when: false  # Do not fail if the container does not exist
+
+    - name: Set fact to check if container is running
+      ansible.builtin.set_fact:
+        ocp_install_iso_is_running: "{{ ocp_install_iso_info.containers[0].State.Running | default(false) }}"
+      when: ocp_install_iso_info.containers | length > 0
+
+    - name: Stop ocp_install_iso container
+      containers.podman.podman_container:
+        name: ocp_install_iso
+        state: stopped
+      when: ocp_install_iso_is_running | default(false)
+
+    - name: Run OCP install ISO hosting httpd container
+      containers.podman.podman_container:
+        name: ocp_install_iso
+        image: quay.io/centos7/httpd-24-centos7:centos7
+        state: started
+        detach: true
+        volume:
+          - "{{ root_dir }}/install/install_iso:/var/www/html"
+        ports:
+          - "80:8080"
+      become: true
+
+- name: Install OpenShift (Agent/AI Based)
+  hosts: localhost
+  vars_files:
+    - ../vars/variables.yaml
+    - ../vars/vault-variables.yaml
+    - ../vars/vm-nodes.yaml
+  tasks:
+    - name: Execute Agent based installation
+      when: install_method == 'agent' or install_method == 'ai'
+      block:
+        - name: Get redfish system inventory
+          community.general.redfish_info:
+            category: Systems
+            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            username: "admin"
+            password: "{{ secure_password }}"
+          register: redfish_system_inventory
+
+        - name: Filter systems where Name contains master- or worker- and extract Ids
+          ansible.builtin.set_fact:
+            redfish_ids: >-
+              {{
+                redfish_system_inventory.redfish_facts.system.entries
+                | selectattr('1.Name', 'search', 'master-|worker-')
+                | map(attribute='1.Id')
+                | list
+              }}
+
+        - name: Shutdown hosts if needed
+          community.general.redfish_command:
+            category: Systems
+            command: PowerForceOff
+            resource_id: "{{ item }}"
+            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            username: "admin"
+            password: "{{ secure_password }}"
+          loop: "{{ redfish_ids }}"
+
+        - name: Insert Virtual Media
+          ansible.builtin.shell: |
+            curl -k -u admin:{{ secure_password }} \
+            -d '{"Image":"http://{{ baremetal_net.gateway }}:80/ocp_install.iso", "Inserted": true}' \
+            -H "Content-Type: application/json" \
+            -X POST https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+          loop: "{{ redfish_ids }}"
+          register: curl_output
+
+        - name: Set boot to CD
+          ansible.builtin.shell: |
+            curl -k -u admin:{{ secure_password }} \
+            -X PATCH -H 'Content-Type: application/json' \
+            -d '{"Boot": {"BootSourceOverrideTarget": "Cd", "BootSourceOverrideMode": "UEFI", "BootSourceOverrideEnabled": "Once"}}' \
+            https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
+          loop: "{{ redfish_ids }}"
+          register: curl_output
+
+        - name: Set boot source back to HDD
+          ansible.builtin.shell: |
+            curl -k -u admin:{{ secure_password }} \
+            -X PATCH -H 'Content-Type: application/json' \
+            -d '{"Boot": {"BootSourceOverrideTarget": "Hdd", "BootSourceOverrideMode": "UEFI", "BootSourceOverrideEnabled": "Continuous"}}' \
+            https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
+          loop: "{{ redfish_ids }}"
+          register: curl_output
+
+        - name: Stop ocp_install_iso container
+          containers.podman.podman_container:
+            name: ocp_install_iso
+            state: stopped
+          become: true
+
+        - name: Start hosts
+          community.general.redfish_command:
+            category: Systems
+            command: PowerOn
+            resource_id: "{{ item }}"
+            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            username: "admin"
+            password: "{{ secure_password }}"
+          loop: "{{ redfish_ids }}"
+
+        - name: Monitor Agent Based Install Process
+          when: install_method == 'agent'
+          block:
+            - name: Start monitoring of installation (wait-for bootstrap-complate)
+              ansible.builtin.shell: |
+                openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for bootstrap-complete --log-level=debug 2> /tmp/install.log &
+              async: 1800
+              poll: 30
+              changed_when: false
+
+            # - name: Wait for "Cluster installation in progress"
+            #   ansible.builtin.wait_for:
+            #     path: "/tmp/install.log"
+            #     search_regex: Cluster installation in progress
+            #     connect_timeout: 1200
+            #     timeout: 1200
+
+            - name: Monitor installation status - bootstrap-completed
+              ansible.builtin.command:
+                cmd: openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for bootstrap-complete --log-level=debug
+              timeout: 2500
+              changed_when: false
+              register: abi_bootstrap
+
+            - name: Monitor installation status - install-completed
+              ansible.builtin.command:
+                cmd: openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for install-complete --log-level=debug
+              register: abi_install
+              timeout: 2500
+              changed_when: false
+
+            - name: Read Content of kubeadmin-password file
+              ansible.builtin.slurp:
+                path: "{{ root_dir }}{{ cluster_name }}/auth/kubeadmin-password"
+              register: kubeadmin_password
+
+            - name: Print summary
+              ansible.builtin.debug:
+                msg:
+                  - "================ SUMMARY ================="
+                  - "OpenShift console: https://openshift-console-openshift.apps.{{ cluster_name }}.{{ base_domain }}"
+                  - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"

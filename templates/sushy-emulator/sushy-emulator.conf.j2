@@ -1,0 +1,29 @@
+SUSHY_EMULATOR_LISTEN_IP = u'0.0.0.0'
+
+SUSHY_EMULATOR_AUTH_FILE = u'/etc/sushy-emulator/auth_file'
+
+SUSHY_EMULATOR_SSL_CERT = u'/etc/sushy-emulator/sushy-tools.crt'
+
+SUSHY_EMULATOR_SSL_KEY = u'/etc/sushy-emulator/sushy-tools.key'
+
+# The libvirt URI to use. This option enables libvirt driver.
+SUSHY_EMULATOR_LIBVIRT_URI = u'qemu:///system'
+
+SUSHY_EMULATOR_VMEDIA_DEVICES = {
+    u'Cd': {
+        u'Name': 'Virtual CD',
+        u'MediaTypes': [
+            u'CD',
+            u'DVD'
+        ]
+    },
+    u'Floppy': {
+        u'Name': u'Virtual Removable Media',
+        u'MediaTypes': [
+            u'Floppy',
+            u'USBStick'
+        ]
+    }
+}
+
+SUSHY_EMULATOR_VMEDIA_VERIFY_SSL = False

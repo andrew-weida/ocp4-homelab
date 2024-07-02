@@ -1,0 +1,21 @@
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Set root directory for later use
+      ansible.builtin.set_fact:
+        root_dir: "{{ playbook_dir }}"
+        cacheable: true
+  tags:
+    - always
+
+- ansible.builtin.import_playbook: playbooks/prepare-hypervisor.yaml
+  tags:
+    - prepare-hypervisor
+
+- ansible.builtin.import_playbook: playbooks/prepare-vms.yaml
+  tags:
+    - prepare-vms
+
+- ansible.builtin.import_playbook: playbooks/install-ocp.yaml
+  tags:
+    - install-ocp

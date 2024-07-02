@@ -1,0 +1,19 @@
+[Unit]
+Description=Provides Redfish BMC Emulation
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+ContainerName=sushy-emulator
+Exec=sushy-emulator -i :: -p 8000 --config /etc/sushy-emulator/sushy-emulator.conf
+Image=quay.io/metal3-io/sushy-tools
+Network=host
+PodmanArgs=--privileged
+Volume=/etc/sushy-emulator:/etc/sushy-emulator
+Volume=/var/run/libvirt:/var/run/libvirt
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

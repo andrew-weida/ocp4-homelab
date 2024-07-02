@@ -1,0 +1,8 @@
+### password used for redfish bmc
+secure_password: <PASSWORD>
+# openshift pull secret
+pull_secret: <OCP_PULL_SECRET>
+# URL for Assisted Installer ISO  if using AI method
+ai_discovery_iso_url: <URL>
+# (TODO: generate ISO and AI_DISCOVERY_ISO_URL automatically), removes the need for pre-generated iso url
+ai_offline_token: <TOKEN>
