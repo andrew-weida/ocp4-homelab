@@ -262,5 +262,6 @@
               ansible.builtin.debug:
                 msg:
                   - "================ SUMMARY ================="
-                  - "OpenShift console: https://openshift-console-openshift.apps.{{ domain }}"
+                  - "OpenShift console: https://console-openshift-console.apps.{{ domain }}"
                   - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"
+                  - "Kubeconfig file is located on server at {{ root_dir }}/install/auth"
