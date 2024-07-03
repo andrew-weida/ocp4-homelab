@@ -8,4 +8,13 @@ master_nodes:
   - name: master-2
     baremetal_mac: 'aa:aa:aa:aa:01:04'
     baremetal_ip: 192.168.125.12
-worker_nodes: []
+worker_nodes:
+    - name: worker-0
+      baremetal_mac: 'aa:aa:aa:aa:01:05'
+      baremetal_ip: 192.168.125.13
+    - name: worker-1
+      baremetal_mac: 'aa:aa:aa:aa:01:06'
+      baremetal_ip: 192.168.125.14
+    - name: worker-2
+      baremetal_mac: 'aa:aa:aa:aa:01:07'
+      baremetal_ip: 192.168.125.15

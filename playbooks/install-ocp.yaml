@@ -1,5 +1,5 @@
 - name: Prepare for agent based install
-  hosts: localhost
+  hosts: kvm_host
   vars_files:
     - ../vars/variables.yaml
     - ../vars/vault-variables.yaml
@@ -142,7 +142,7 @@
       become: true
 
 - name: Install OpenShift (Agent/AI Based)
-  hosts: localhost
+  hosts: kvm_host
   vars_files:
     - ../vars/variables.yaml
     - ../vars/vault-variables.yaml

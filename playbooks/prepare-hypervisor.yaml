@@ -1,5 +1,5 @@
 - name: Prepare Hypervisor
-  hosts: localhost
+  hosts: kvm_host
   vars_files:
     - ../vars/variables.yaml
     - ../vars/vault-variables.yaml
@@ -28,17 +28,13 @@
           #
           # For AMD
           options kvm_amd nested=1
+        mode: '0644'
       register: enable_nested
 
     - name: Run dracut
       ansible.builtin.shell: |
         dracut -fv
-      when:
-        - enable_nested.changed
-
-    - name: Reboot in order to enable selinux/nested virtualization
-      ansible.builtin.reboot:
-        reboot_timeout: "{{ kvm_host.reboot_timeout }}"
+      changed_when: false
       when:
         - enable_nested.changed
 
@@ -62,15 +58,14 @@
         path: /.autorelabel
         state: touch
         mode: '0644'
-      when: (kvm_host.enable_selinux | bool and not selinux_status.stdout == "enforcing") or enable_nested.changed
+      when: kvm_host.enable_selinux | bool and not selinux_status.stdout == "enforcing"
 
     - name: Reboot in order to enable selinux/nested virtualization
       ansible.builtin.reboot:
         reboot_timeout: "{{ kvm_host.reboot_timeout }}"
       when:
         - kvm_host.enable_selinux|bool
-        - not selinux_status.stdout == "enforcing"
-        - or enable_nested.changed
+        - not selinux_status.stdout == "enforcing" or enable_nested.changed
 
     - name: Enable EPEL Repo
       ansible.builtin.dnf:
@@ -146,7 +141,7 @@
 
     - name: Uncompress openshift-client-linux.tar.gz
       ansible.builtin.unarchive:
-        src: /tmp/openshift-client-linux.tar.gz"=
+        src: /tmp/openshift-client-linux.tar.gz
         dest: /usr/bin/
         remote_src: true
         creates: /usr/bin/oc
@@ -259,44 +254,21 @@
             permanent: true
             state: enabled
 
-    - name: Find unused block devices
-      ansible.builtin.shell: |
-        set -o pipefail && lsblk -o NAME,FSTYPE -dsn | awk '$2 == "" {print $1}'
-      register: unused_devices
-      changed_when: false
-
-    - name: Create list of unused devices
-      ansible.builtin.set_fact:
-        device_list: "{{ unused_devices.stdout_lines | map('regex_replace', '^', '/dev/') | list }}"
-
     - name: Create new volume for KVM images if needed
-      when: device_list | length > 0 and create_lv_from_unused_devices
+      when: create_image_fs | default(false) and image_fs_disks | default([]) | length > 0
       become: true
       block:
-        - name: Create physical volumes
-          ansible.builtin.shell: |
-            pvcreate {{ item }}
-          with_items: "{{ device_list }}"
-          changed_when: false
+        - name: Create a logical volume the size of all remaining space in the volume group
+          community.general.lvol:
+            vg: vg_vm_images
+            lv: lv_vm_images
+            size: 100%PVS
+            pvs: "{{ image_fs_disks }}"
 
-        - name: Create list of unused devices
-          ansible.builtin.set_fact:
-            device_list_line: "{{ device_list | join(' ') }}"
-
-        - name: Create volume group
-          ansible.builtin.shell: |
-            vgcreate vg_vm_images {{ device_list_line }}
-          changed_when: false
-
-        - name: Create logical volume
-          ansible.builtin.shell: |
-            lvcreate -l 100%FREE -n lv_vm_images vg_vm_images
-          changed_when: false
-
-        - name: Format logical volume with ext4
-          ansible.builtin.shell: |
-            mkfs.ext4 /dev/vg_vm_images/lv_vm_images
-          changed_when: false
+        - name: Create a ext4 filesystem on /dev/sdb1
+          community.general.filesystem:
+            fstype: ext4
+            dev: /dev/vg_vm_images/lv_vm_images
 
         - name: Create mount point
           ansible.builtin.file:

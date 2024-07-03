@@ -68,11 +68,17 @@ worker:
     - 100
 ```
 
-#### create_lv_from_unused_devices
+#### create_image_fs
 
-The images for the VMs are created in /var/lib/libvirt/images, if the filesystem does not have enough disk space (750GB in the example), then you can set the variable **create_lv_from_unused_devices** to true. 
-This will use LVM to allocate additional space at that location if there are free block devices on the hypervisor.
-create_lv_from_unused_devices
+The images for the VMs are created in /var/lib/libvirt/images, if the filesystem does not have enough disk space (750GB in the example), then you can set the variable **create_image_fs** to true. 
+This will use LVM to allocate additional space using the disks you specify under **image_fs_disks**
+
+```yaml
+create_image_fs: true
+image_fs_disks:
+- /dev/sda
+- /dev/nvme0n1
+```
 
 ### vars/vault-variables.yaml
 
@@ -88,8 +94,6 @@ ai_discovery_iso_url: <URL>
 
 Install OpenShift Container Platform
 --------------------------------
-(From your Hypervisor host)
-
 #### Clone this repo
 ```bash
 git clone https://github.com/andrew-weida/ocp4-homelab.git
@@ -103,6 +107,13 @@ ansible-vault encrypt vars/vault-variables.yaml
 echo "your vault pw" > .vaultpw
 ```
 
+
+#### Update inventory with your KVM/hypervisor host ip
+```ini
+[all]
+kvm_host ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_host=<KVM_HOST_IP>
+
+```
 #### Run the main.yaml playbook
 
 ```bash

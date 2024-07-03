@@ -37,5 +37,7 @@ ocp_version: stable-4.15
 # ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
 install_method: agent
 image_dir: /var/lib/libvirt/images
-# If the root filesystem is not large enough for VM images, create a new filesystem from all free devices using LVM
-create_lv_from_unused_devices: false
+# Set create_image_fs to true if the root filesystem is not large enough for VM images,
+# And list the un-used disk(s) (/dev/sda, /dev/nvme01n1, etc) to create fs the from in image_fs_disks.
+create_image_fs: false
+image_fs_disks: []

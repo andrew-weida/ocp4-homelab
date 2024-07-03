@@ -1,4 +1,4 @@
-- hosts: localhost
+- hosts: kvm_host
   gather_facts: false
   tasks:
     - name: Set root directory for later use

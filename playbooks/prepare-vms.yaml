@@ -1,5 +1,5 @@
 - name: Create VMs and Network
-  hosts: localhost
+  hosts: kvm_host
   vars_files:
     - ../vars/variables.yaml
     - ../vars/vm-nodes.yaml
@@ -24,8 +24,9 @@
         dest: "{{ root_dir }}/plans/kcli-vms.yaml"
         mode: '0644'
 
-    - name: Create VM Baremetal Network
+    - name: Create VM image pool and Baremetal Network
       ansible.builtin.shell: |
+        kcli create pool -p /var/lib/libvirt/images default
         kcli create plan -f {{ root_dir }}/plans/kcli-networks.yaml
       changed_when: false
 
