@@ -255,12 +255,12 @@
 
             - name: Read Content of kubeadmin-password file
               ansible.builtin.slurp:
-                path: "{{ root_dir }}{{ cluster_name }}/auth/kubeadmin-password"
+                path: "{{ root_dir }}/install/auth/kubeadmin-password"
               register: kubeadmin_password
 
             - name: Print summary
               ansible.builtin.debug:
                 msg:
                   - "================ SUMMARY ================="
-                  - "OpenShift console: https://openshift-console-openshift.apps.{{ cluster_name }}.{{ base_domain }}"
+                  - "OpenShift console: https://openshift-console-openshift.apps.{{ domain }}"
                   - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"
