@@ -36,7 +36,7 @@ frontend routers-https-443
     mode tcp
     tcp-request inspect-delay 5s
     tcp-request content accept if { req_ssl_hello_type 1 }
-    acl ACL_management req_ssl_sni -m reg -i ^[^\.]+\.apps\.ocp-lab\.home\.arpa
+    acl ACL_management req_ssl_sni -m reg -i ^[^\.]+\.apps\.{{ domain | regex_replace('\.', '\\.') }}
     use_backend ingress_443 if ACL_management
 
 backend ingress_443
