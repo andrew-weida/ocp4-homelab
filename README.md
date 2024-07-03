@@ -49,6 +49,8 @@ For example, the following will create VMs for a HA cluster with 2 worker nodes
 ### vars/variables.yaml
 Most of the variables in here are self-explanatory, and the defaults can be used, but you'll probably want to update **cluster_name**, **base_domain** and maybe **ocp_version**.
 
+#### CPU/Memory/Disk
+
 The memory/cpu/disk for the VM's are defined in this file. Additional disks (GB) can be added/removed to nodes by adding a item to the disks list. The example below would create 2 disks 150GB and 100GB for each node.
 
 ```yaml
@@ -65,6 +67,8 @@ worker:
     - 150
     - 100
 ```
+
+#### create_lv_from_unused_devices
 
 The images for the VMs are created in /var/lib/libvirt/images, if the filesystem does not have enough disk space (750GB in the example), then you can set the variable **create_lv_from_unused_devices** to true. 
 This will use LVM to allocate additional space at that location if there are free block devices on the hypervisor.
@@ -86,20 +90,20 @@ Install OpenShift Container Platform
 --------------------------------
 (From your Hypervisor host)
 
-Clone this repo
+#### Clone this repo
 ```bash
 git clone https://github.com/andrew-weida/ocp4-homelab.git
 cd ocp4-homelab
 ```
 
-Create the vault and .vaultpw file
+#### Create the vault and .vaultpw file
 ```bash
 cp vars/vault-variables.yaml.sample vars/vault-variables.yaml
 ansible-vault encrypt vars/vault-variables.yaml
 echo "your vault pw" > .vaultpw
 ```
 
-Run the main.yaml playbook
+#### Run the main.yaml playbook
 
 ```bash
 ansible-playbook main.yaml
