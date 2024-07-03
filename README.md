@@ -37,32 +37,7 @@ For example, the following will create VMs for a HA cluster with 2 worker nodes
     - name: master-2
       baremetal_mac: 'aa:aa:aa:aa:01:04'
       baremetal_ip: 192.168.125.12
-  worker_nodes: []
-    - name: worker-0
-      baremetal_mac: 'aa:aa:aa:aa:01:05'
-      baremetal_ip: 192.168.125.13
-    - name: worker-1
-      baremetal_mac: 'aa:aa:aa:aa:01:06'
-      baremetal_ip: 192.168.125.14
-```
-
-### vars/vm-nodes.yaml
-This file is used to define the VMs that will make up your cluster, 
-
-For example, the following will create VMs for a HA cluster with 2 worker nodes
-
-```yaml
-  master_nodes:
-    - name: master-0
-      baremetal_mac: 'aa:aa:aa:aa:01:02'
-      baremetal_ip: 192.168.125.10
-    - name: master-1
-      baremetal_mac: 'aa:aa:aa:aa:01:03'
-      baremetal_ip: 192.168.125.11
-    - name: master-2
-      baremetal_mac: 'aa:aa:aa:aa:01:04'
-      baremetal_ip: 192.168.125.12
-  worker_nodes: []
+  worker_nodes:
     - name: worker-0
       baremetal_mac: 'aa:aa:aa:aa:01:05'
       baremetal_ip: 192.168.125.13
@@ -90,6 +65,11 @@ worker:
     - 150
     - 100
 ```
+
+The images for the VMs are created in /var/lib/libvirt/images, if the filesystem does not have enough disk space (750GB in the example), then you can set the variable **create_lv_from_unused_devices** to true. 
+This will use LVM to allocate additional space at that location if there are free block devices on the hypervisor.
+create_lv_from_unused_devices
+
 ### vars/vault-variables.yaml
 
 This is a ansible-vault that should contain the following variables  
