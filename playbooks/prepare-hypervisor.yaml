@@ -36,6 +36,12 @@
       when:
         - enable_nested.changed
 
+    - name: Reboot in order to enable selinux/nested virtualization
+      ansible.builtin.reboot:
+        reboot_timeout: "{{ kvm_host.reboot_timeout }}"
+      when:
+        - enable_nested.changed
+
     - name: Check selinux status
       ansible.builtin.shell: |
         set -o pipefail && sestatus | egrep '^Current mode:' | sed -E 's/^Current mode:\s+//g'
@@ -56,9 +62,7 @@
         path: /.autorelabel
         state: touch
         mode: '0644'
-      when:
-        - kvm_host.enable_selinux|bool
-        - not selinux_status.stdout == "enforcing"
+      when: (kvm_host.enable_selinux | bool and not selinux_status.stdout == "enforcing") or enable_nested.changed
 
     - name: Reboot in order to enable selinux/nested virtualization
       ansible.builtin.reboot:
@@ -70,9 +74,10 @@
 
     - name: Enable EPEL Repo
       ansible.builtin.dnf:
-        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
         state: present
         disable_gpg_check: true
+      when: ansible_distribution == "RedHat"
 
     - name: Enable Repo for kcli
       ansible.builtin.shell: |

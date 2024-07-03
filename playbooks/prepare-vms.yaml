@@ -14,7 +14,7 @@
 
     - name: Create kcli networks plan file
       ansible.builtin.template:
-        ssrc: "{{ root_dir }}/templates/kcli/kcli-networks.yaml.j2"
+        src: "{{ root_dir }}/templates/kcli/kcli-networks.yaml.j2"
         dest: "{{ root_dir }}/plans/kcli-networks.yaml"
         mode: '0644'
 

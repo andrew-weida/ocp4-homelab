@@ -227,28 +227,28 @@
           block:
             - name: Start monitoring of installation (wait-for bootstrap-complate)
               ansible.builtin.shell: |
-                openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for bootstrap-complete --log-level=debug 2> /tmp/install.log &
+                openshift-install --dir {{ root_dir }}/install agent wait-for bootstrap-complete --log-level=debug 2> /tmp/install.log &
               async: 1800
               poll: 30
               changed_when: false
 
-            # - name: Wait for "Cluster installation in progress"
-            #   ansible.builtin.wait_for:
-            #     path: "/tmp/install.log"
-            #     search_regex: Cluster installation in progress
-            #     connect_timeout: 1200
-            #     timeout: 1200
+            - name: Wait for "Cluster installation in progress"
+              ansible.builtin.wait_for:
+                path: "/tmp/install.log"
+                search_regex: Cluster installation in progress
+                connect_timeout: 1200
+                timeout: 1200
 
             - name: Monitor installation status - bootstrap-completed
               ansible.builtin.command:
-                cmd: openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for bootstrap-complete --log-level=debug
+                cmd: openshift-install --dir {{ root_dir }}/install agent wait-for bootstrap-complete --log-level=debug
               timeout: 2500
               changed_when: false
               register: abi_bootstrap
 
             - name: Monitor installation status - install-completed
               ansible.builtin.command:
-                cmd: openshift-install --dir {{ root_dir }}/{{ cluster_name }} agent wait-for install-complete --log-level=debug
+                cmd: openshift-install --dir {{ root_dir }}/install agent wait-for install-complete --log-level=debug
               register: abi_install
               timeout: 2500
               changed_when: false
