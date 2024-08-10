@@ -18,6 +18,9 @@ controlPlane:
   name: master
   replicas: {{ master_nodes | list | length }}
 platform:
+{% if master_nodes | list | length == 1 %}
+  none: {}
+{% else %}
   baremetal:
     apiVIP: {{ vip.api }}
     ingressVIP: {{ vip.apps }}
@@ -47,3 +50,4 @@ platform:
         rootDeviceHints:
           deviceName: "/dev/vda"
 {% endfor %}
+{% endif %}

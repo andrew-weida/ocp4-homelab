@@ -47,7 +47,9 @@ For example, the following will create VMs for a HA cluster with 2 worker nodes
 ```
 
 ### vars/variables.yaml
-Most of the variables in here are self-explanatory, and the defaults can be used, but you'll probably want to update **cluster_name**, **base_domain** and maybe **ocp_version**.
+Most of the variables in here are self-explanatory, and the defaults can be used, but you'll probably want to update **cluster_name**, **base_domain** and maybe **ocp_version**. 
+
+Note: You can enable ACM and GitOps operators during the install by setting install_acm and install_gitops variables to true
 
 #### CPU/Memory/Disk
 
@@ -118,4 +120,61 @@ kvm_host ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking
 
 ```bash
 ansible-playbook main.yaml
+```
+
+Provision VMs for ACM Inventory
+--------------------------------
+You can create VMs for ACM managed clusters after deployment of a hub cluster using the following variables to  `vars/vault-variables.yaml`:
+
+```yaml
+acm_managed:
+  base_domain: home.arpa
+  cluster_name: acm-managed
+  vip:
+    api: 192.168.125.90
+    api_int: 192.168.125.90
+    apps: 192.168.125.91
+  master:
+    cpu: 16
+    memory: 12288
+    disks: 
+      - 150
+  worker:
+    cpu: 16
+    memory: 12288
+    disks: 
+      - 150
+acm_managed_domain: "{{ acm_managed.cluster_name }}.{{ acm_managed.base_domain }}"
+```
+Host variables should be added to `vars/vm-nodes.yaml` as follows:
+
+```yaml
+acm_managed_nodes:
+  master_nodes:
+    - name: acm-managed-master-0
+      baremetal_mac: 'aa:aa:aa:aa:01:20'
+      baremetal_ip: 192.168.125.16
+    - name: acm-managed-master-1
+      baremetal_mac: 'aa:aa:aa:aa:01:21'
+      baremetal_ip: 192.168.125.17
+    - name: acm-managed-master-2
+      baremetal_mac: 'aa:aa:aa:aa:01:22'
+      baremetal_ip: 192.168.125.18
+  worker_nodes: []
+      - name: acm-managed-worker-0
+        baremetal_mac: 'aa:aa:aa:aa:01:23'
+        baremetal_ip: 192.168.125.19
+      - name: acm-managed-worker-2
+        baremetal_mac: 'aa:aa:aa:aa:01:24'
+        baremetal_ip: 192.168.125.20
+      - name: acm-managed-worker-2
+        baremetal_mac: 'aa:aa:aa:aa:01:25'
+        baremetal_ip: 192.168.125.21
+  worker_nodes: []
+```
+
+Then re-run prepare-vms:
+
+```bash
+ansible-playbook main.yml --tags prepare-vms
 ```

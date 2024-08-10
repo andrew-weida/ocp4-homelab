@@ -40,3 +40,47 @@
       reservedns: true
   reservehost: true
 {% endfor %}
+{% if acm_managed | default(false) %}
+{% for node in acm_managed_nodes.master_nodes %}
+{{ node.name }}:
+  start: false
+  numcpus: {{ acm_managed.master.cpu }}
+  memory: {{ acm_managed.master.memory }}
+  uefi_legacy: true
+  diskthin: false
+  disks:
+{% for disk in acm_managed.master.disks %}
+  - {{ disk }}
+{% endfor %}
+  nets:
+    - name: {{ baremetal_net.name }}
+      mac: {{ node.baremetal_mac }}
+      ip: {{ node.baremetal_ip }}
+      mask: {{ baremetal_net.netmask }}
+      gateway: {{ baremetal_net.gateway }}
+      reserveip: true
+      reservedns: true
+  reservehost: true
+{% endfor %}
+{% for node in acm_managed_nodes.worker_nodes %}
+{{ node.name }}:
+  start: false
+  numcpus: {{ acm_managed.worker.cpu }}
+  memory: {{ acm_managed.worker.memory }}
+  uefi_legacy: true
+  diskthin: false
+  disks:
+{% for disk in worker.disks %}
+  - {{ disk }}
+{% endfor %}
+  nets:
+    - name: {{ baremetal_net.name }}
+      mac: {{ node.baremetal_mac }}
+      ip: {{ node.baremetal_ip }}
+      mask: {{ baremetal_net.netmask }}
+      gateway: {{ baremetal_net.gateway }}
+      reserveip: true
+      reservedns: true
+  reservehost: true
+{% endfor %}
+{% endif %}

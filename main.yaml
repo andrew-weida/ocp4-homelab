@@ -1,9 +1,19 @@
 - hosts: kvm_host
   gather_facts: false
   tasks:
-    - name: Set root directory for later use
+    - name: Set root_playbook_dir for later use
       ansible.builtin.set_fact:
-        root_dir: "{{ playbook_dir }}"
+        root_playbook_dir: "{{ playbook_dir }}"
+        cacheable: true
+  tags:
+    - always
+
+- hosts: kvm_host
+  gather_facts: true
+  tasks:
+    - name: Set deployment directory for later use
+      ansible.builtin.set_fact:
+        deploy_dir: "{{ ansible_user_dir }}/ocp4-homelab"
         cacheable: true
   tags:
     - always

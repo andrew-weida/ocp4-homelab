@@ -7,20 +7,36 @@
   tasks:
     - name: Remove existing cluster install directory
       ansible.builtin.file:
-        path: "{{ root_dir }}/install"
+        path: "{{ deploy_dir }}/install"
         state: absent
 
     - name: Create install/install_iso directory
       ansible.builtin.file:
-        path: "{{ root_dir }}/install/install_iso"
+        path: "{{ deploy_dir }}/install/install_iso"
         state: directory
         mode: '0755'
 
     - name: Create install/openshift directory
       ansible.builtin.file:
-        path: "{{ root_dir }}/install/openshift"
+        path: "{{ deploy_dir }}/install/openshift"
         state: directory
         mode: '0755'
+
+    - name: Copy ACM Operator Manifests into openshift directory
+      ansible.builtin.template:
+        src: "{{ root_playbook_dir }}/templates/ocp-install/addons/acm/acm-install.yaml.j2"
+        dest: "{{ deploy_dir }}/install/openshift/acm-install.yaml"
+        backup: true
+        mode: '0600'
+      when: install_acm
+
+    - name: Copy GitOps Operator Manifests into openshift directory
+      ansible.builtin.template:
+        src: "{{ root_playbook_dir }}/templates/ocp-install/addons/gitops/gitops-install.yaml.j2"
+        dest: "{{ deploy_dir }}/install/openshift/gitops-install.yaml"
+        backup: true
+        mode: '0600'
+      when: install_gitops
 
     - name: Execute Pre-Reqs for Agent Based install
       when: install_method == 'agent'
@@ -28,56 +44,56 @@
         - name: Copy pull-secret.txt
           ansible.builtin.copy:
             content: "{{ pull_secret }}"
-            dest: "{{ root_dir }}/pull-secret.txt"
+            dest: "{{ deploy_dir }}/pull-secret.txt"
             mode: '0600'
 
         - name: Copy install-config.yaml
           ansible.builtin.template:
-            src: "{{ root_dir }}/templates/ocp-install/install-config-agent.yaml.j2"
-            dest: "{{ root_dir }}/install-config.yaml"
+            src: "{{ root_playbook_dir }}/templates/ocp-install/install-config-agent.yaml.j2"
+            dest: "{{ deploy_dir }}/install-config.yaml"
             backup: true
             mode: '0600'
 
         - name: Insert pullSecret in install-config.yaml
           ansible.builtin.shell: |
-            echo -n "pullSecret: '" >> {{ root_dir }}/install-config.yaml
-            cat {{ root_dir }}/pull-secret.txt >> {{ root_dir }}/install-config.yaml
-            sed -E -i "s@^(pullSecret: .*)@\1'@g" {{ root_dir }}/install-config.yaml
-            echo "" >> {{ root_dir }}/install-config.yaml
+            echo -n "pullSecret: '" >> {{ deploy_dir }}/install-config.yaml
+            cat {{ deploy_dir }}/pull-secret.txt >> {{ deploy_dir }}/install-config.yaml
+            sed -E -i "s@^(pullSecret: .*)@\1'@g" {{ deploy_dir }}/install-config.yaml
+            echo "" >> {{ deploy_dir }}/install-config.yaml
           changed_when: false
 
         - name: Insert sshKey in install-config.yaml
           ansible.builtin.shell: |
-            echo -n "sshKey: '" >> {{ root_dir }}/install-config.yaml
-            cat $HOME/.ssh/id_rsa.pub >> {{ root_dir }}/install-config.yaml
-            sed -E -i "s@^(sshKey: .*)@\1'@g" {{ root_dir }}/install-config.yaml
+            echo -n "sshKey: '" >> {{ deploy_dir }}/install-config.yaml
+            cat $HOME/.ssh/id_rsa.pub >> {{ deploy_dir }}/install-config.yaml
+            sed -E -i "s@^(sshKey: .*)@\1'@g" {{ deploy_dir }}/install-config.yaml
           changed_when: false
 
         - name: Copy install-config.yaml to clusterconfigs directory
           ansible.builtin.shell: |
-            cp -f {{ root_dir }}/install-config.yaml {{ root_dir }}/install
+            cp -f {{ deploy_dir }}/install-config.yaml {{ deploy_dir }}/install
           changed_when: false
 
         - name: Copy install-config.yaml
           ansible.builtin.template:
-            src: "{{ root_dir }}/templates/ocp-install/agent-config.yaml.j2"
-            dest: "{{ root_dir }}/agent-config.yaml"
+            src: "{{ root_playbook_dir }}/templates/ocp-install/agent-config.yaml.j2"
+            dest: "{{ deploy_dir }}/agent-config.yaml"
             backup: true
             mode: '0600'
 
         - name: Copy agent-config.yaml to clusterconfigs directory
           ansible.builtin.shell: |
-            cp -f {{ root_dir }}/agent-config.yaml {{ root_dir }}/install
+            cp -f {{ deploy_dir }}/agent-config.yaml {{ deploy_dir }}/install
           changed_when: false
 
         - name: Generate Agent ISO Image
           ansible.builtin.command:
-            cmd: openshift-install --dir {{ root_dir }}/install agent create image
+            cmd: openshift-install --dir {{ deploy_dir }}/install agent create image
           changed_when: false
 
         - name: Move OCP Install ISO Image to install_iso directoy
           ansible.builtin.command:
-            cmd: mv {{ root_dir }}/install/agent.x86_64.iso {{ root_dir }}/install/install_iso/ocp_install.iso
+            cmd: mv {{ deploy_dir }}/install/agent.x86_64.iso {{ deploy_dir }}/install/install_iso/ocp_install.iso
           changed_when: false
 
     - name: Execute Pre-Reqs for Assisted Installer
@@ -98,18 +114,18 @@
         - name: Download Assisted Installer Discovery ISO
           ansible.builtin.get_url:
             url: "{{ ai_discovery_iso_url }}"
-            dest: "{{ root_dir }}/install/ocp_ai_discovery.iso"
+            dest: "{{ deploy_dir }}/install/ocp_ai_discovery.iso"
             mode: '0664'
 
         - name: Move OCP AI Discovery ISO Image to install_iso directoy
           ansible.builtin.command:
-            cmd: mv {{ root_dir }}/install/ocp_ai_discovery.iso {{ root_dir }}/install/install_iso/ocp_install.iso
+            cmd: mv {{ deploy_dir }}/install/ocp_ai_discovery.iso {{ deploy_dir }}/install/install_iso/ocp_install.iso
           changed_when: false
 
     - name: Set selinux context for install_iso directory
       ansible.builtin.shell: |
-        sudo semanage fcontext -a -t httpd_sys_content_t "{{ root_dir }}/install/install_iso(/.*)?"
-        sudo restorecon -Rv {{ root_dir }}/install/install_iso
+        sudo semanage fcontext -a -t httpd_sys_content_t "{{ deploy_dir }}/install/install_iso(/.*)?"
+        sudo restorecon -Rv {{ deploy_dir }}/install/install_iso
       changed_when: false
 
     - name: Get info about the ocp_install_iso container
@@ -136,7 +152,7 @@
         state: started
         detach: true
         volume:
-          - "{{ root_dir }}/install/install_iso:/var/www/html"
+          - "{{ deploy_dir }}/install/install_iso:/var/www/html"
         ports:
           - "80:8080"
       become: true
@@ -227,7 +243,7 @@
           block:
             - name: Start monitoring of installation (wait-for bootstrap-complate)
               ansible.builtin.shell: |
-                openshift-install --dir {{ root_dir }}/install agent wait-for bootstrap-complete --log-level=debug 2> /tmp/install.log &
+                openshift-install --dir {{ deploy_dir }}/install agent wait-for bootstrap-complete --log-level=debug 2> /tmp/install.log &
               async: 1800
               poll: 30
               changed_when: false
@@ -241,21 +257,21 @@
 
             - name: Monitor installation status - bootstrap-completed
               ansible.builtin.command:
-                cmd: openshift-install --dir {{ root_dir }}/install agent wait-for bootstrap-complete --log-level=debug
+                cmd: openshift-install --dir {{ deploy_dir }}/install agent wait-for bootstrap-complete --log-level=debug
               timeout: 2500
               changed_when: false
               register: abi_bootstrap
 
             - name: Monitor installation status - install-completed
               ansible.builtin.command:
-                cmd: openshift-install --dir {{ root_dir }}/install agent wait-for install-complete --log-level=debug
+                cmd: openshift-install --dir {{ deploy_dir }}/install agent wait-for install-complete --log-level=debug
               register: abi_install
               timeout: 2500
               changed_when: false
 
             - name: Read Content of kubeadmin-password file
               ansible.builtin.slurp:
-                path: "{{ root_dir }}/install/auth/kubeadmin-password"
+                path: "{{ deploy_dir }}/install/auth/kubeadmin-password"
               register: kubeadmin_password
 
             - name: Print summary
@@ -264,4 +280,4 @@
                   - "================ SUMMARY ================="
                   - "OpenShift console: https://console-openshift-console.apps.{{ domain }}"
                   - "Kubeadmin password: {{ kubeadmin_password['content'] | b64decode }}"
-                  - "Kubeconfig file is located on server at {{ root_dir }}/install/auth"
+                  - "Kubeconfig file is located on server at {{ deploy_dir }}/install/auth"

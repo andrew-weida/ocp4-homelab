@@ -1,0 +1,40 @@
+<network xmlns:dnsmasq='http://libvirt.org/schemas/network/dnsmasq/1.0'>
+  <name>{{ baremetal_net.name }}</name>
+  <uuid>854b9ad4-44d5-4b89-a7b3-10de92feabf6</uuid>
+  <metadata>
+    <kvirt:info xmlns:kvirt="kvirt">
+      <kvirt:plan>kvirt</kvirt:plan>
+    </kvirt:info>
+  </metadata>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='{{ baremetal_net.name }}' stp='on' delay='0'/>
+  <mac address='52:54:00:34:99:9e'/>
+  <domain name='{{ domain }}' localOnly='no'/>
+  <dns enable='yes'>
+    <host ip='{{ vip.api }}'>
+      <hostname>api.{{ domain }}</hostname>
+    </host>
+    <host ip='{{ vip.api }}'>
+      <hostname>api-int.{{ domain }}</hostname>
+    </host>
+  </dns>
+<ip family='ipv4' address='{{ baremetal_net.gateway }}' prefix='{{ baremetal_net.prefix }}'>
+  <dhcp>
+    <range start='{{ baremetal_net.net | regex_replace('\\.[0-9]+$', '.2') }}' end='{{ baremetal_net.net | regex_replace('\\.[0-9]+$', '.254') }}'/>
+{% set all_nodes = master_nodes + worker_nodes %}
+{% if acm_managed_nodes | default(false) %}
+{% set all_nodes = all_nodes + acm_managed_nodes.master_nodes + acm_managed_nodes.worker_nodes %}
+{% endif %}
+{% for node in all_nodes %}
+    <host mac='{{ node.baremetal_mac }}' name='{{ node.name }}' ip='{{ node.baremetal_ip }}'/>
+{% endfor %}
+  </dhcp>
+</ip>
+  <dnsmasq:options>
+    <dnsmasq:option value='address=/apps.{{ domain }}/{{ vip.apps }}'/>
+  </dnsmasq:options>
+</network>

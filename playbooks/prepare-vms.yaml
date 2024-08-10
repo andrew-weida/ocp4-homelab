@@ -5,47 +5,83 @@
     - ../vars/vm-nodes.yaml
     - ../vars/vault-variables.yaml
   tasks:
-
-    - name: Create plans directory
+    - name: Create config directory
       ansible.builtin.file:
-        path: "{{ root_dir }}/plans"
+        path: "{{ deploy_dir }}/config"
         state: directory
         mode: '0755'
 
-    - name: Create kcli networks plan file
-      ansible.builtin.template:
-        src: "{{ root_dir }}/templates/kcli/kcli-networks.yaml.j2"
-        dest: "{{ root_dir }}/plans/kcli-networks.yaml"
-        mode: '0644'
-
-    - name: Create kcli vm plan file
-      ansible.builtin.template:
-        src: "{{ root_dir }}/templates/kcli/kcli-vms.yaml.j2"
-        dest: "{{ root_dir }}/plans/kcli-vms.yaml"
-        mode: '0644'
-
-    - name: Create VM image pool and Baremetal Network
+    - name: Create VM image pool
       ansible.builtin.shell: |
         kcli create pool -p /var/lib/libvirt/images default
-        kcli create plan -f {{ root_dir }}/plans/kcli-networks.yaml
       changed_when: false
+
+    - name: Create libvirt network config xml
+      ansible.builtin.template:
+        src: "{{ root_playbook_dir }}/templates/libvirt/vm-network.xml.j2"
+        dest: "{{ deploy_dir }}/config/vm-network.xml"
+        mode: '0644'
+
+    - name: Create VM network
+      ansible.builtin.shell: |
+        virsh net-destroy {{ baremetal_net.name }}
+        virsh net-define --file {{ deploy_dir }}/config/vm-network.xml
+        virsh net-autostart ocp4-net
+        virsh net-start ocp4-net
+      changed_when: false
+
+    - name: Create KCLI VM plan file
+      ansible.builtin.template:
+        src: "{{ root_playbook_dir }}/templates/kcli/kcli-vms.yaml.j2"
+        dest: "{{ deploy_dir }}/config/kcli-vms.yaml"
+        mode: '0644'
 
     - name: Create Virtual Machines
       ansible.builtin.shell: |
-        kcli create plan -f {{ root_dir }}/plans/kcli-vms.yaml ocp-vms
+        kcli create plan -f {{ deploy_dir }}/config/kcli-vms.yaml ocp-vms
       changed_when: false
 
-    - name: Create api/apps DNS records
-      ansible.builtin.shell: |
-        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.api }} -d {{ domain }} api
-        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.api_int }} -d {{ domain }} api-int
-        kcli create dns -n {{ baremetal_net.name }} -i {{ vip.apps }} -d {{ domain }} *.apps
-      changed_when: false
-
-    - name: Generate Lines for etc hosts
+    - name: Generate Cluster host entries for /etc/hosts
       ansible.builtin.set_fact:
         api_etc_hosts: "{{ vip.api }} api.{{ domain }}"
-        apps_etc_hosts: "{{ vip.apps }} console-openshift-console.apps.{{ domain }} oauth-openshift.apps.{{ domain }}"
+        apps_etc_hosts: "{{ vip.apps }} oauth-openshift.apps.{{ domain }}"
+
+    - name: Needed for ACM cluster
+      when: acm_managed | default(false)
+      block:
+        - name: Generate ACM Cluster host entries for /etc/hosts
+          ansible.builtin.set_fact:
+            acm_api_etc_hosts: "{{ acm_managed.vip.api }} api.{{ acm_managed_domain }}"
+            acm_apps_etc_hosts: "{{ acm_managed.vip.apps }} oauth-openshift.apps.{{ acm_managed_domain }}"
+
+        - name: Insert haproxy ACL and use_backend config for ACM cluster
+          ansible.builtin.blockinfile:
+            path: /etc/haproxy/haproxy.cfg
+            marker: "# {mark} {{ acm_managed.cluster_name }} ACL"
+            insertafter: '^(\s+use_backend ingress_443 if ACL_management)'
+            block: |
+                {% filter indent(width=4, first=true) %}
+                acl ACL_{{ acm_managed.cluster_name }} req_ssl_sni -m reg -i ^[^\.]+\.apps\.{{ acm_managed_domain | regex_replace('\.', '\\.') }}
+                use_backend ingress_{{ acm_managed.cluster_name }}_443 if ACL_{{ acm_managed.cluster_name }}
+                {% endfilter %}
+
+        - name: Insert haproxy backend config for ACM cluster
+          ansible.builtin.blockinfile:
+            path: /etc/haproxy/haproxy.cfg
+            marker: "# {mark} {{ acm_managed.cluster_name }} backend"
+            insertafter: '^(\s+server ingress {{ vip.apps }}:443 check inter 1s)'
+            block: |
+              backend ingress_{{ acm_managed.cluster_name }}_443
+                  mode tcp
+                  balance source
+                  option ssl-hello-chk
+                  server ingress {{ acm_managed.vip.apps }}:443 check inter 1s
+
+        - name: Restart HAProxy
+          ansible.builtin.systemd:
+            name: haproxy
+            enabled: true
+            state: restarted
 
     - name: Add mappings to /etc/hosts
       ansible.builtin.blockinfile:
@@ -53,4 +89,6 @@
         block: |
           {{ api_etc_hosts }}
           {{ apps_etc_hosts }}
+          {{ acm_api_etc_hosts | default(none) }}
+          {{ acm_apps_etc_hosts | default(none) }}
         marker: "# {mark} ANSIBLE MANAGED BLOCK"

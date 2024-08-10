@@ -9,7 +9,7 @@ fi
 
 for node in $(oc get nodes -o jsonpath='{.items[*].metadata.name}'); do echo ${node} ; oc adm cordon ${node} ; done
 for node in $(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{.items[*].metadata.name}'); do echo ${node} ; oc adm drain ${node} --delete-emptydir-data --ignore-daemonsets=true --timeout=15s --force ; done
-for node in $(oc get nodes -o jsonpath='{.items[*].metadata.name}'); do oc debug node/${node} -- chroot /host shutdown -h 1; done
+for node in $(oc get nodes -o jsonpath='{.items[*].metadata.name}'); do oc debug -n default node/${node} -- chroot /host shutdown -h 1; done
 
 check_vms_shutdown() {
     running_vms=$(virsh list --state-running --name | grep -E '^(master-|worker-)')

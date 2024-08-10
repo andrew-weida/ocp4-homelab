@@ -207,7 +207,7 @@
 
         - name: Configure sushy-emulator.conf
           ansible.builtin.template:
-            src: "{{ root_dir }}/templates/sushy-emulator/sushy-emulator.conf.j2"
+            src: "{{ root_playbook_dir }}/templates/sushy-emulator/sushy-emulator.conf.j2"
             dest: /etc/sushy-emulator/sushy-emulator.conf
             owner: root
             group: sushy-tools
@@ -216,7 +216,7 @@
 
         - name: Configure sushy-emulator systemd unit (quadlet)
           ansible.builtin.template:
-            src: "{{ root_dir }}/templates/sushy-emulator/sushy-emulator.container.j2"
+            src: "{{ root_playbook_dir }}/templates/sushy-emulator/sushy-emulator.container.j2"
             dest: /etc/containers/systemd/sushy-emulator.container
             owner: root
             group: sushy-tools
@@ -310,7 +310,7 @@
 
     - name: Configure HAProxy
       ansible.builtin.template:
-        src: "{{ root_dir }}/templates/ha-proxy.cfg.j2"
+        src: "{{ root_playbook_dir }}/templates/haproxy/haproxy.cfg.j2"
         dest: /etc/haproxy/haproxy.cfg
         backup: true
         mode: '0600'
