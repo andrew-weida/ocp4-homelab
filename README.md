@@ -2,7 +2,7 @@ ocp4-homelab
 =====================
 Introduction
 ------------
-I use these playbooks to install [**OpenShift Container Platform 4.x**](https://docs.openshift.com/container-platform/4.16/installing/installing_bare_metal/preparing-to-install-on-bare-metal.html); where instead of using bare metal nodes I use virtual machines on Intel based hosts, and simulate Redifish BMC using sushy-tools.
+I use these playbooks to install [**OpenShift Container Platform 4.x**](https://docs.openshift.com/container-platform/4.16/installing/installing_bare_metal/preparing-to-install-on-bare-metal.html); where instead of using bare metal nodes I use KVM virtual machines on Intel based hosts, and simulate Redifish BMC using sushy-tools.
 
 
 **Warning:** This project / repository / playbooks should be used **only for testing** OpenShift Container Platform 4.x and **NOT** for production environment.
@@ -10,7 +10,7 @@ I use these playbooks to install [**OpenShift Container Platform 4.x**](https://
 Requirements
 ------------
 ### Operating System and packages
-This has been tested on Fedora 40 and RHEL 8/9. Python/Ansible is required on the host.
+This has been tested on Fedora 40/41 and should also work on RHEL 8/9. Python/Ansible is required on the playbook execution host.
 
 The rest of the requirements are installed via the playbooks
 - libvirt
