@@ -31,6 +31,10 @@ listen stats-50000
     stats auth admin:password
     stats uri  /haproxy?stats
 
+frontend api
+    bind :6443
+    default_backend api-server
+
 frontend routers-https-443
     bind :443
     mode tcp
@@ -38,6 +42,12 @@ frontend routers-https-443
     tcp-request content accept if { req_ssl_hello_type 1 }
     acl ACL_management req_ssl_sni -m reg -i ^[^\.]+\.apps\.{{ domain | regex_replace('\.', '\\.') }}
     use_backend ingress_443 if ACL_management
+
+backend api-server
+    balance source
+{% for master in master_nodes %}
+    server {{ master.name }} {{ master.baremetal_ip }}:6443 check
+{% endfor %}
 
 backend ingress_443
     mode tcp

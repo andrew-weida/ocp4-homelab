@@ -14,45 +14,43 @@ vip:
   api_int: 192.168.125.80
   apps: 192.168.125.81
 master:
-  cpu: 16
+  cpu: 4
   memory: 16384
   disks: 
-    - 150
-    - 350
+    - 200
 worker:
-  cpu: 16
+  cpu: 8
   memory: 32768
   disks: 
-    - 150
-    - 100
-acm_managed:
-  base_domain: home.arpa
-  cluster_name: acm-test
-  vip:
-    api: 192.168.125.16
-    api_int: 192.168.125.16
-    apps: 192.168.125.16
-  master:
-    cpu: 8
-    memory: 16384
-    disks: 
-      - 150
-  worker:
-    cpu: 8
-    memory: 16384
-    disks: 
-      - 150
-acm_managed_domain: "{{ acm_managed.cluster_name }}.{{ acm_managed.base_domain }}"
-install_acm: true
+    - 200
+# acm_managed:
+#   base_domain: home.arpa
+#   cluster_name: sno-0
+#   vip:
+#     api: 192.168.125.16
+#     api_int: 192.168.125.16
+#     apps: 192.168.125.16
+#   master:
+#     cpu: 16
+#     memory: 12288
+#     disks: 
+#       - 150
+#   worker:S
+#     cpu: 16
+#     memory: 12288
+#     disks: 
+#       - 150
+# acm_managed_domain: "{{ acm_managed.cluster_name }}.{{ acm_managed.base_domain }}"
+# install_acm: true
 install_gitops: true
 kvm_host:
   enable_selinux: true
   reboot_timeout: 1200
-cluster_name: acm-hub
+cluster_name: lab
 base_domain: home.arpa
 domain: "{{ cluster_name }}.{{ base_domain }}"
 pull_secret_file: pull-secret.txt
-ocp_version: stable-4.15
+ocp_version: stable-4.18
 # choose install method: ipi, ai, agent
 # ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
 install_method: agent

@@ -2,6 +2,7 @@
   hosts: kvm_host
   vars_files:
     - ../vars/variables.yaml
+    - ../vars/vm-nodes.yaml
     - ../vars/vault-variables.yaml
   tasks:
     - name: Create ssh key on first host
@@ -139,6 +140,11 @@
         dest: /tmp/openshift-client-linux.tar.gz
         mode: '0664'
 
+    - name: Remove existing oc cli
+      ansible.builtin.file:
+        path: /usr/bin/oc
+        state: absent
+
     - name: Uncompress openshift-client-linux.tar.gz
       ansible.builtin.unarchive:
         src: /tmp/openshift-client-linux.tar.gz
@@ -152,6 +158,11 @@
         url: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/{{ ocp_version }}/openshift-install-linux.tar.gz"
         dest: /tmp/openshift-install-linux.tar.gz
         mode: '0664'
+
+    - name: Remove existing openshift-install
+      ansible.builtin.file:
+        path: /usr/bin/openshift-install
+        state: absent
 
     - name: Uncompress openshift-install-linux.tar.gz
       ansible.builtin.unarchive:

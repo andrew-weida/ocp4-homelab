@@ -25,7 +25,7 @@
   numcpus: {{ worker.cpu }}
   memory: {{ worker.memory }}
   uefi_legacy: true
-  diskthin: false
+  diskthin: true
   disks:
 {% for disk in worker.disks %}
   - {{ disk }}
@@ -47,7 +47,7 @@
   numcpus: {{ acm_managed.master.cpu }}
   memory: {{ acm_managed.master.memory }}
   uefi_legacy: true
-  diskthin: false
+  diskthin: true
   disks:
 {% for disk in acm_managed.master.disks %}
   - {{ disk }}
@@ -68,7 +68,7 @@
   numcpus: {{ acm_managed.worker.cpu }}
   memory: {{ acm_managed.worker.memory }}
   uefi_legacy: true
-  diskthin: false
+  diskthin: true
   disks:
 {% for disk in worker.disks %}
   - {{ disk }}

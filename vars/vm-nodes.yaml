@@ -18,9 +18,14 @@ worker_nodes:
   - name: worker-2
     baremetal_mac: 'aa:aa:aa:aa:01:07'
     baremetal_ip: 192.168.125.15
-acm_managed_nodes:
-  master_nodes:
-    - name: acm-0
-      baremetal_mac: 'aa:aa:aa:aa:01:08'
-      baremetal_ip: 192.168.125.16
-  worker_nodes: []
+acm_managed_nodes: []
+  # master_nodes:
+  #   - name: sno-0
+  #     baremetal_mac: 'aa:aa:aa:aa:01:08'
+  #     baremetal_ip: 192.168.125.16
+  #   - name: sno-1
+  #     baremetal_mac: 'aa:aa:aa:aa:01:09'
+  #     baremetal_ip: 192.168.125.17
+  #   - name: sno-2
+  #     baremetal_mac: 'aa:aa:aa:aa:01:10'
+  #     baremetal_ip: 192.168.125.18
