@@ -30,6 +30,12 @@
         virsh net-start ocp4-net
       changed_when: false
 
+    - name: Create NAT rules for VM network
+      ansible.builtin.shell: |
+        firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s {{ baremetal_net.net }}/{{ baremetal_net.prefix }} ! -d {{ baremetal_net.net }}/{{ baremetal_net.prefix }} -j MASQUERADE
+        firewall-cmd --runtime-to-permanent
+      changed_when: false
+
     - name: Create KCLI VM plan file
       ansible.builtin.template:
         src: "{{ root_playbook_dir }}/templates/kcli/kcli-vms.yaml.j2"

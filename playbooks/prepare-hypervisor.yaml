@@ -68,12 +68,22 @@
         - kvm_host.enable_selinux|bool
         - not selinux_status.stdout == "enforcing" or enable_nested.changed
 
+    - name: Install python3-libdnf5 on systems that need it
+      ansible.builtin.shell: dnf install -y python3-libdnf5
+      when:
+        - ansible_os_family == "RedHat"
+        - >
+          (ansible_distribution == "Fedora" and ansible_distribution_major_version|int >= 43) or
+          (ansible_distribution == "RedHat" and ansible_distribution_major_version|int >= 10) or
+          (ansible_distribution == "CentOS" and ansible_distribution_major_version|int >= 10)
+      become: yes
+
     - name: Enable EPEL Repo
       ansible.builtin.dnf:
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
         state: present
         disable_gpg_check: true
-      when: ansible_distribution == "RedHat"
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
 
     - name: Enable Repo for kcli
       ansible.builtin.shell: |
@@ -133,6 +143,21 @@
         - podman
         - firewalld
         - cockpit
+
+    - name: Enable HTTPS and API Server in firewalld for HAProxy and OpenShift ingress
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        state: enabled
+        immediate: true
+      loop:
+        - https
+        - kube-apiserver
+
+    - name: Reload firewalld to apply changes
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
 
     - name: Download openshift-client-linux
       ansible.builtin.get_url:
@@ -307,18 +332,14 @@
           - haproxy
         state: present
 
-    - name: Allow https for HAProxy in firewall
-      ansible.posix.firewalld:
-        zone: public
-        service: https
-        permanent: true
-        state: enabled
-
-    - name: Restart firewalld
-      ansible.builtin.systemd:
-        name: firewalld
-        state: restarted
-
+    - name: Allow HAProxy to bind to any port
+      ansible.posix.seboolean:
+        name: haproxy_connect_any
+        state: yes
+        persistent: yes
+      when:
+        - kvm_host.enable_selinux|bool
+        
     - name: Configure HAProxy
       ansible.builtin.template:
         src: "{{ root_playbook_dir }}/templates/haproxy/haproxy.cfg.j2"

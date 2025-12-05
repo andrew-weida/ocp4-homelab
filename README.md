@@ -105,8 +105,8 @@ cd ocp4-homelab
 #### Create the vault and .vaultpw file
 ```bash
 cp vars/vault-variables.yaml.sample vars/vault-variables.yaml
-ansible-vault encrypt vars/vault-variables.yaml
 echo "your vault pw" > .vaultpw
+ansible-vault encrypt vars/vault-variables.yaml
 ```
 
 
