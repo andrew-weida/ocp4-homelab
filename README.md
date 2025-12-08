@@ -10,7 +10,7 @@ I use these playbooks to install [**OpenShift Container Platform 4.x**](https://
 Requirements
 ------------
 ### Operating System and packages
-This has been tested on Fedora 40/41 and should also work on RHEL 8/9. Python/Ansible is required on the playbook execution host.
+This has been tested on Fedora 41-43 and may also work on RHEL 9/10. Python/Ansible is required on the playbook execution host.
 
 The rest of the requirements are installed via the playbooks
 - libvirt
@@ -178,3 +178,8 @@ Then re-run prepare-vms:
 ```bash
 ansible-playbook main.yml --tags prepare-vms
 ```
+
+DNS & Ingress
+--------------------------------
+The playbook configures an instance of HAProxy on the KVM host to route OpenShift Ingress and API traffic to the correct VMs/VIPS. If you want to access OpenShift outside of the hypervisior you will need to configure DNS entries for api.domain and *.apps.domain to point to the KVM host. /etc/hosts on your local machine can work in a pinch, but in my case i configured dnsmasq on my mac, which allows for wildcard entries for *.apps. See https://gist.github.com/ogrrd/5831371 for details. 
+
