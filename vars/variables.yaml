@@ -20,7 +20,7 @@ master:
     - 200
 worker:
   cpu: 8
-  memory: 32768
+  memory: 16384
   disks: 
     - 200
 # acm_managed:
@@ -35,23 +35,23 @@ worker:
 #     memory: 12288
 #     disks: 
 #       - 150
-#   worker:S
+#   worker:
 #     cpu: 16
 #     memory: 12288
 #     disks: 
 #       - 150
 # acm_managed_domain: "{{ acm_managed.cluster_name }}.{{ acm_managed.base_domain }}"
-# install_acm: true
+install_acm: false
 install_gitops: true
 kvm_host:
   enable_selinux: true
   reboot_timeout: 1200
-cluster_name: lab
+cluster_name: demo
 base_domain: home.arpa
 domain: "{{ cluster_name }}.{{ base_domain }}"
 pull_secret_file: pull-secret.txt
-ocp_version: stable-4.18
-# choose install method: ipi, ai, agent
+ocp_version: stable-4.20
+# choose install method: ai, agent
 # ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
 install_method: agent
 image_dir: /var/lib/libvirt/images

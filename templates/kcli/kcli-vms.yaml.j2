@@ -11,8 +11,8 @@
 {% endfor %}
   nets:
     - name: {{ baremetal_net.name }}
-      mac: {{ node.baremetal_mac }}
-      ip: {{ node.baremetal_ip }}
+      mac: {{ node.virtual_mac }}
+      ip: {{ node.virtual_ip }}
       mask: {{ baremetal_net.netmask }}
       gateway: {{ baremetal_net.gateway }}
       reserveip: true
@@ -32,8 +32,8 @@
 {% endfor %}
   nets:
     - name: {{ baremetal_net.name }}
-      mac: {{ node.baremetal_mac }}
-      ip: {{ node.baremetal_ip }}
+      mac: {{ node.virtual_mac }}
+      ip: {{ node.virtual_ip }}
       mask: {{ baremetal_net.netmask }}
       gateway: {{ baremetal_net.gateway }}
       reserveip: true
@@ -54,8 +54,8 @@
 {% endfor %}
   nets:
     - name: {{ baremetal_net.name }}
-      mac: {{ node.baremetal_mac }}
-      ip: {{ node.baremetal_ip }}
+      mac: {{ node.virtual_mac }}
+      ip: {{ node.virtual_ip }}
       mask: {{ baremetal_net.netmask }}
       gateway: {{ baremetal_net.gateway }}
       reserveip: true
@@ -75,8 +75,8 @@
 {% endfor %}
   nets:
     - name: {{ baremetal_net.name }}
-      mac: {{ node.baremetal_mac }}
-      ip: {{ node.baremetal_ip }}
+      mac: {{ node.virtual_mac }}
+      ip: {{ node.virtual_ip }}
       mask: {{ baremetal_net.netmask }}
       gateway: {{ baremetal_net.gateway }}
       reserveip: true

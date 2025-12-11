@@ -1,31 +1,31 @@
 master_nodes:
   - name: master-0
-    baremetal_mac: 'aa:aa:aa:aa:01:02'
-    baremetal_ip: 192.168.125.10
+    virtual_mac: 'aa:aa:aa:aa:01:02'
+    virtual_ip: 192.168.125.10
   - name: master-1
-    baremetal_mac: 'aa:aa:aa:aa:01:03'
-    baremetal_ip: 192.168.125.11
+    virtual_mac: 'aa:aa:aa:aa:01:03'
+    virtual_ip: 192.168.125.11
   - name: master-2
-    baremetal_mac: 'aa:aa:aa:aa:01:04'
-    baremetal_ip: 192.168.125.12
+    virtual_mac: 'aa:aa:aa:aa:01:04'
+    virtual_ip: 192.168.125.12
 worker_nodes:
   - name: worker-0
-    baremetal_mac: 'aa:aa:aa:aa:01:05'
-    baremetal_ip: 192.168.125.13
-  - name: worker-1
-    baremetal_mac: 'aa:aa:aa:aa:01:06'
-    baremetal_ip: 192.168.125.14
-  - name: worker-2
-    baremetal_mac: 'aa:aa:aa:aa:01:07'
-    baremetal_ip: 192.168.125.15
+    virtual_mac: 'aa:aa:aa:aa:01:05'
+    virtual_ip: 192.168.125.13
+  # - name: worker-1
+  #   virtual_mac: 'aa:aa:aa:aa:01:06'
+  #   virtual_ip: 192.168.125.14
+  # - name: worker-2
+  #   virtual_mac: 'aa:aa:aa:aa:01:07'
+  #   virtual_ip: 192.168.125.15
 acm_managed_nodes: []
   # master_nodes:
   #   - name: sno-0
-  #     baremetal_mac: 'aa:aa:aa:aa:01:08'
-  #     baremetal_ip: 192.168.125.16
+  #     virtual_mac: 'aa:aa:aa:aa:01:08'
+  #     virtual_ip: 192.168.125.16
   #   - name: sno-1
-  #     baremetal_mac: 'aa:aa:aa:aa:01:09'
-  #     baremetal_ip: 192.168.125.17
+  #     virtual_mac: 'aa:aa:aa:aa:01:09'
+  #     virtual_ip: 192.168.125.17
   #   - name: sno-2
-  #     baremetal_mac: 'aa:aa:aa:aa:01:10'
-  #     baremetal_ip: 192.168.125.18
+  #     virtual_mac: 'aa:aa:aa:aa:01:10'
+  #     virtual_ip: 192.168.125.18

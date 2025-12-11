@@ -46,7 +46,7 @@ frontend routers-https-443
 backend api-server
     balance source
 {% for master in master_nodes %}
-    server {{ master.name }} {{ master.baremetal_ip }}:6443 check
+    server {{ master.name }} {{ master.virtual_ip }}:6443 check
 {% endfor %}
 
 backend ingress_443

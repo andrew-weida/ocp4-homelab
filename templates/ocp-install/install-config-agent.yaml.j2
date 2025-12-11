@@ -34,7 +34,7 @@ platform:
           disableCertificateVerification: true
           username: admin
           password: {{ secure_password }}
-        bootMACAddress: {{ host.baremetal_mac }}
+        bootMACAddress: {{ host.virtual_mac }}
         rootDeviceHints:
           deviceName: "/dev/vda"
 {% endfor %}
@@ -46,7 +46,7 @@ platform:
           disableCertificateVerification: true
           username: admin
           password: {{ secure_password }}
-        bootMACAddress: {{ host.baremetal_mac }}
+        bootMACAddress: {{ host.virtual_mac }}
         rootDeviceHints:
           deviceName: "/dev/vda"
 {% endfor %}

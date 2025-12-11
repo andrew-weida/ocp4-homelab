@@ -2,4 +2,4 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: {{ cluster_name }}
-rendezvousIP: {{ master_nodes.0.baremetal_ip }}
+rendezvousIP: {{ master_nodes.0.virtual_ip }}

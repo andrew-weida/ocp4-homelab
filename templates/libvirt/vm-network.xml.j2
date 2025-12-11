@@ -26,7 +26,7 @@
 {% set all_nodes = all_nodes + acm_managed_nodes.master_nodes + acm_managed_nodes.worker_nodes %}
 {% endif %}
 {% for node in all_nodes %}
-    <host mac='{{ node.baremetal_mac }}' name='{{ node.name }}' ip='{{ node.baremetal_ip }}'/>
+    <host mac='{{ node.virtual_mac }}' name='{{ node.name }}' ip='{{ node.virtual_ip }}'/>
 {% endfor %}
   </dhcp>
 </ip>

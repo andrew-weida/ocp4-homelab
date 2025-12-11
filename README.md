@@ -29,21 +29,21 @@ For example, the following will create VMs for a HA cluster with 2 worker nodes
 ```yaml
   master_nodes:
     - name: master-0
-      baremetal_mac: 'aa:aa:aa:aa:01:02'
-      baremetal_ip: 192.168.125.10
+      virtual_mac: 'aa:aa:aa:aa:01:02'
+      virtual_ip: 192.168.125.10
     - name: master-1
-      baremetal_mac: 'aa:aa:aa:aa:01:03'
-      baremetal_ip: 192.168.125.11
+      virtual_mac: 'aa:aa:aa:aa:01:03'
+      virtual_ip: 192.168.125.11
     - name: master-2
-      baremetal_mac: 'aa:aa:aa:aa:01:04'
-      baremetal_ip: 192.168.125.12
+      virtual_mac: 'aa:aa:aa:aa:01:04'
+      virtual_ip: 192.168.125.12
   worker_nodes:
     - name: worker-0
-      baremetal_mac: 'aa:aa:aa:aa:01:05'
-      baremetal_ip: 192.168.125.13
+      virtual_mac: 'aa:aa:aa:aa:01:05'
+      virtual_ip: 192.168.125.13
     - name: worker-1
-      baremetal_mac: 'aa:aa:aa:aa:01:06'
-      baremetal_ip: 192.168.125.14
+      virtual_mac: 'aa:aa:aa:aa:01:06'
+      virtual_ip: 192.168.125.14
 ```
 
 ### vars/variables.yaml
@@ -152,24 +152,24 @@ Host variables should be added to `vars/vm-nodes.yaml` as follows:
 acm_managed_nodes:
   master_nodes:
     - name: acm-managed-master-0
-      baremetal_mac: 'aa:aa:aa:aa:01:20'
-      baremetal_ip: 192.168.125.16
+      virtual_mac: 'aa:aa:aa:aa:01:20'
+      virtual_ip: 192.168.125.16
     - name: acm-managed-master-1
-      baremetal_mac: 'aa:aa:aa:aa:01:21'
-      baremetal_ip: 192.168.125.17
+      virtual_mac: 'aa:aa:aa:aa:01:21'
+      virtual_ip: 192.168.125.17
     - name: acm-managed-master-2
-      baremetal_mac: 'aa:aa:aa:aa:01:22'
-      baremetal_ip: 192.168.125.18
+      virtual_mac: 'aa:aa:aa:aa:01:22'
+      virtual_ip: 192.168.125.18
   worker_nodes: []
       - name: acm-managed-worker-0
-        baremetal_mac: 'aa:aa:aa:aa:01:23'
-        baremetal_ip: 192.168.125.19
+        virtual_mac: 'aa:aa:aa:aa:01:23'
+        virtual_ip: 192.168.125.19
       - name: acm-managed-worker-2
-        baremetal_mac: 'aa:aa:aa:aa:01:24'
-        baremetal_ip: 192.168.125.20
+        virtual_mac: 'aa:aa:aa:aa:01:24'
+        virtual_ip: 192.168.125.20
       - name: acm-managed-worker-2
-        baremetal_mac: 'aa:aa:aa:aa:01:25'
-        baremetal_ip: 192.168.125.21
+        virtual_mac: 'aa:aa:aa:aa:01:25'
+        virtual_ip: 192.168.125.21
   worker_nodes: []
 ```
 
