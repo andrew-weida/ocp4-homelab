@@ -47,7 +47,7 @@ For example, the following will create VMs for a HA cluster with 2 worker nodes
 ```
 
 ### vars/variables.yaml
-Most of the variables in here are self-explanatory, and the defaults can be used, but you'll probably want to update **cluster_name**, **base_domain** and maybe **ocp_version**. 
+Most of the variables in here are self-explanatory, and the defaults can be used, but you'll probably want to update **cluster_name**, **base_domain** and maybe **ocp_version**. If the virtual ip's or mac addresses conflict with your phyical network you would have to update those too.
 
 Note: You can enable ACM and GitOps operators during the install by setting install_acm and install_gitops variables to true
 
@@ -181,5 +181,5 @@ ansible-playbook main.yml --tags prepare-vms
 
 DNS & Ingress
 --------------------------------
-The playbook configures an instance of HAProxy on the KVM host to route OpenShift Ingress and API traffic to the correct VMs/VIPS. If you want to access OpenShift outside of the hypervisior you will need to configure DNS entries for api.domain and *.apps.domain to point to the KVM host. /etc/hosts on your local machine can work in a pinch, but in my case i configured dnsmasq on my mac, which allows for wildcard entries for *.apps. See https://gist.github.com/ogrrd/5831371 for details. 
+The playbook configures an instance of HAProxy on the KVM host to route OpenShift Ingress and API traffic to the correct VMs/VIPS on the libvirt network. If you want to access OpenShift outside of the hypervisior you will need to configure DNS entries for api.domain and *.apps.domain to point to the KVM host. /etc/hosts on your local machine can work in a pinch, but in my case i configured dnsmasq on my mac, which allows for wildcard entries for *.apps. See https://gist.github.com/ogrrd/5831371 for details. 
 
