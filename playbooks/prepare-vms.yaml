@@ -24,7 +24,7 @@
 
     - name: Create VM network
       ansible.builtin.shell: |
-        virsh net-destroy {{ baremetal_net.name }}
+        virsh net-destroy {{ ocp_virtual_net.name }}
         virsh net-define --file {{ deploy_dir }}/config/vm-network.xml
         virsh net-autostart ocp4-net
         virsh net-start ocp4-net
@@ -32,7 +32,7 @@
 
     - name: Create NAT rules for VM network
       ansible.builtin.shell: |
-        firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s {{ baremetal_net.net }}/{{ baremetal_net.prefix }} ! -d {{ baremetal_net.net }}/{{ baremetal_net.prefix }} -j MASQUERADE
+        firewall-cmd --direct --add-rule ipv4 nat POSTROUTING 0 -s {{ ocp_virtual_net.net }}/{{ ocp_virtual_net.prefix }} ! -d {{ ocp_virtual_net.net }}/{{ ocp_virtual_net.prefix }} -j MASQUERADE
         firewall-cmd --runtime-to-permanent
       changed_when: false
 

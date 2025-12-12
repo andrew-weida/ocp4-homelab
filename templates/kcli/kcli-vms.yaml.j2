@@ -10,11 +10,11 @@
   - {{ disk }}
 {% endfor %}
   nets:
-    - name: {{ baremetal_net.name }}
+    - name: {{ ocp_virtual_net.name }}
       mac: {{ node.virtual_mac }}
       ip: {{ node.virtual_ip }}
-      mask: {{ baremetal_net.netmask }}
-      gateway: {{ baremetal_net.gateway }}
+      mask: {{ ocp_virtual_net.netmask }}
+      gateway: {{ ocp_virtual_net.gateway }}
       reserveip: true
       reservedns: true
   reservehost: true
@@ -31,11 +31,11 @@
   - {{ disk }}
 {% endfor %}
   nets:
-    - name: {{ baremetal_net.name }}
+    - name: {{ ocp_virtual_net.name }}
       mac: {{ node.virtual_mac }}
       ip: {{ node.virtual_ip }}
-      mask: {{ baremetal_net.netmask }}
-      gateway: {{ baremetal_net.gateway }}
+      mask: {{ ocp_virtual_net.netmask }}
+      gateway: {{ ocp_virtual_net.gateway }}
       reserveip: true
       reservedns: true
   reservehost: true
@@ -53,11 +53,11 @@
   - {{ disk }}
 {% endfor %}
   nets:
-    - name: {{ baremetal_net.name }}
+    - name: {{ ocp_virtual_net.name }}
       mac: {{ node.virtual_mac }}
       ip: {{ node.virtual_ip }}
-      mask: {{ baremetal_net.netmask }}
-      gateway: {{ baremetal_net.gateway }}
+      mask: {{ ocp_virtual_net.netmask }}
+      gateway: {{ ocp_virtual_net.gateway }}
       reserveip: true
       reservedns: true
   reservehost: true
@@ -74,11 +74,11 @@
   - {{ disk }}
 {% endfor %}
   nets:
-    - name: {{ baremetal_net.name }}
+    - name: {{ ocp_virtual_net.name }}
       mac: {{ node.virtual_mac }}
       ip: {{ node.virtual_ip }}
-      mask: {{ baremetal_net.netmask }}
-      gateway: {{ baremetal_net.gateway }}
+      mask: {{ ocp_virtual_net.netmask }}
+      gateway: {{ ocp_virtual_net.gateway }}
       reserveip: true
       reservedns: true
   reservehost: true

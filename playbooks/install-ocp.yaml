@@ -170,7 +170,7 @@
         - name: Get redfish system inventory
           community.general.redfish_info:
             category: Systems
-            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            baseuri: "{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}"
             username: "admin"
             password: "{{ secure_password }}"
           register: redfish_system_inventory
@@ -190,7 +190,7 @@
             category: Systems
             command: PowerForceOff
             resource_id: "{{ item }}"
-            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            baseuri: "{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}"
             username: "admin"
             password: "{{ secure_password }}"
           loop: "{{ redfish_ids }}"
@@ -198,9 +198,9 @@
         - name: Insert Virtual Media
           ansible.builtin.shell: |
             curl -k -u admin:{{ secure_password }} \
-            -d '{"Image":"http://{{ baremetal_net.gateway }}:80/ocp_install.iso", "Inserted": true}' \
+            -d '{"Image":"http://{{ ocp_virtual_net.gateway }}:80/ocp_install.iso", "Inserted": true}' \
             -H "Content-Type: application/json" \
-            -X POST https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
+            -X POST https://{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}/VirtualMedia/Cd/Actions/VirtualMedia.InsertMedia
           loop: "{{ redfish_ids }}"
           register: curl_output
 
@@ -209,7 +209,7 @@
             curl -k -u admin:{{ secure_password }} \
             -X PATCH -H 'Content-Type: application/json' \
             -d '{"Boot": {"BootSourceOverrideTarget": "Cd", "BootSourceOverrideMode": "UEFI", "BootSourceOverrideEnabled": "Once"}}' \
-            https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
+            https://{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
           loop: "{{ redfish_ids }}"
           register: curl_output
 
@@ -218,7 +218,7 @@
             curl -k -u admin:{{ secure_password }} \
             -X PATCH -H 'Content-Type: application/json' \
             -d '{"Boot": {"BootSourceOverrideTarget": "Hdd", "BootSourceOverrideMode": "UEFI", "BootSourceOverrideEnabled": "Continuous"}}' \
-            https://{{ baremetal_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
+            https://{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}/redfish/v1/Systems/{{ item }}
           loop: "{{ redfish_ids }}"
           register: curl_output
 
@@ -233,7 +233,7 @@
             category: Systems
             command: PowerOn
             resource_id: "{{ item }}"
-            baseuri: "{{ baremetal_net.gateway }}:{{ redfish.listen_port }}"
+            baseuri: "{{ ocp_virtual_net.gateway }}:{{ redfish.listen_port }}"
             username: "admin"
             password: "{{ secure_password }}"
           loop: "{{ redfish_ids }}"

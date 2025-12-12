@@ -1,6 +1,6 @@
-{{ baremetal_net.name }}:
+{{ ocp_virtual_net.name }}:
   type: network
-  cidr: {{ baremetal_net.net }}/{{ baremetal_net.prefix }}
+  cidr: {{ ocp_virtual_net.net }}/{{ ocp_virtual_net.prefix }}
   dhcp: true
   nat: true
   domain: {{ domain }}

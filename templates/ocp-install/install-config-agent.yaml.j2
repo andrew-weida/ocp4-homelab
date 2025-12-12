@@ -10,7 +10,7 @@ networking:
   serviceNetwork: 
   - 172.30.0.0/16
   machineNetwork:
-  - cidr: {{ baremetal_net.net }}/{{ baremetal_net.prefix }}
+  - cidr: {{ ocp_virtual_net.net }}/{{ ocp_virtual_net.prefix }}
 compute:
 - name: worker
   replicas: {{ worker_nodes | list | length }}
