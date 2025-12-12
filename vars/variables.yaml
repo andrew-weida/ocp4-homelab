@@ -1,9 +1,26 @@
-bridge_prov: ocp4-net
+kvm_host:
+  enable_selinux: true
+  reboot_timeout: 1200
 redfish:
   redfish_ip: 192.168.125.1
   listen_port: 8000
   enable: true
-baremetal_net:
+image_dir: /var/lib/libvirt/images
+# Set create_image_fs to true if the root filesystem is not large enough for VM images,
+# And list the un-used disk(s) (/dev/sda, /dev/nvme01n1, etc) to create fs the from in image_fs_disks.
+create_image_fs: false
+image_fs_disks: []
+cluster_name: demo
+base_domain: home.arpa
+domain: "{{ cluster_name }}.{{ base_domain }}"
+pull_secret_file: pull-secret.txt
+ocp_version: stable-4.20
+# choose install method: ai, agent
+# ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
+install_method: agent
+# ai_discovery_iso_url: ""
+install_gitops: true
+ocp_virtual_net:
   name: ocp4-net
   net: 192.168.125.0
   netmask: 255.255.255.0
@@ -23,6 +40,7 @@ worker:
   memory: 16384
   disks: 
     - 200
+install_acm: false
 # acm_managed:
 #   base_domain: home.arpa
 #   cluster_name: sno-0
@@ -41,21 +59,3 @@ worker:
 #     disks: 
 #       - 150
 # acm_managed_domain: "{{ acm_managed.cluster_name }}.{{ acm_managed.base_domain }}"
-install_acm: false
-install_gitops: true
-kvm_host:
-  enable_selinux: true
-  reboot_timeout: 1200
-cluster_name: demo
-base_domain: home.arpa
-domain: "{{ cluster_name }}.{{ base_domain }}"
-pull_secret_file: pull-secret.txt
-ocp_version: stable-4.20
-# choose install method: ai, agent
-# ai method requires you to generate your iso and populate ai_discovery_iso_url variable at console.redhat.com
-install_method: agent
-image_dir: /var/lib/libvirt/images
-# Set create_image_fs to true if the root filesystem is not large enough for VM images,
-# And list the un-used disk(s) (/dev/sda, /dev/nvme01n1, etc) to create fs the from in image_fs_disks.
-create_image_fs: false
-image_fs_disks: []
